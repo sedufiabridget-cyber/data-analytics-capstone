@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Roblox Africa Operations — Workforce Intelligence Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #16213a;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent2: #f472b6;
+    --good: #34d399;
+    --bad: #f87171;
+    --border: #2b3a55;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); padding: 24px 32px 60px;
+  }
+  h1 { font-size: 22px; margin-bottom: 2px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .kpi .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .kpi .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
+  .kpi .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px;}
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .card h3 { margin: 0 0 4px; font-size: 14px; }
+  .card .desc { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+  .full { grid-column: 1 / -1; }
+  canvas { max-height: 300px; }
+  .tag { display:inline-block; background:#0ea5e922; color:var(--accent); border-radius:6px; padding:2px 8px; font-size:11px; margin-left:8px; vertical-align:middle;}
+</style>
+</head>
+<body>
+<h1>Workforce Intelligence &amp; Organizational Performance Dashboard</h1>
+<div class="subtitle">Roblox Africa Operations — Ghana Hub &nbsp;|&nbsp; 30,000 employees across 8 departments &nbsp;|&nbsp; FY2021–FY2025</div>
+
+<div class="grid">
+  <div class="kpi"><div class="label">Total Headcount</div><div class="value">30,000</div><div class="sub">8 departments, evenly distributed</div></div>
+  <div class="kpi"><div class="label">Avg. Tenure</div><div class="value">6.4 yrs</div><div class="sub">Consistent across all departments</div></div>
+  <div class="kpi"><div class="label">Best Revenue/Cost</div><div class="value" style="color:var(--good)">HR — 1.80x</div><div class="sub">Highest return per $ of dept cost</div></div>
+  <div class="kpi"><div class="label">Weakest Revenue/Cost</div><div class="value" style="color:var(--bad)">Product Mgmt — 1.46x</div><div class="sub">Lowest return per $ of dept cost</div></div>
+</div>
+
+<div class="charts">
+  <div class="card">
+    <h3>Headcount by Department</h3>
+    <div class="desc">Workforce composition — nearly uniform distribution (~3,700–3,820 per dept)</div>
+    <canvas id="headcountChart"></canvas>
+  </div>
+  <div class="card">
+    <h3>Revenue-per-Cost by Department <span class="tag">Cost Efficiency</span></h3>
+    <div class="desc">Total revenue generated ÷ total cost, 2021–2025 cumulative</div>
+    <canvas id="costValueChart"></canvas>
+  </div>
+  <div class="card">
+    <h3>Avg. Salary vs. Avg. Performance by Education Level</h3>
+    <div class="desc">Education level shows almost no differentiation in pay or performance</div>
+    <canvas id="eduChart"></canvas>
+  </div>
+  <div class="card">
+    <h3>Health & Wellbeing Risk by Department</h3>
+    <div class="desc">% of employees with expired insurance and not medical-leave-eligible</div>
+    <canvas id="healthChart"></canvas>
+  </div>
+  <div class="card">
+    <h3>Employee Status Mix by Department</h3>
+    <div class="desc">Active / On Leave / Inactive — attrition-risk proxy</div>
+    <canvas id="statusChart"></canvas>
+  </div>
+  <div class="card">
+    <h3>Avg. Department Performance Score, 2021–2025</h3>
+    <div class="desc">Company-wide yearly trend (avg across all 8 departments)</div>
+    <canvas id="trendChart"></canvas>
+  </div>
+  <div class="card full">
+    <h3>Training Hours Completed — Correlation with Outcomes (Department-Year level)</h3>
+    <div class="desc">Correlation of Average_Performance_Score with each metric (1.0 = perfect, 0 = none)</div>
+    <canvas id="corrChart" style="max-height:180px"></canvas>
+  </div>
+</div>
+
+<script>
+const DATA = {"composition": [{"department_name": "Customer Support Department", "Headcount": 3819, "Pct_Female": 50.9, "Avg_Tenure": 6.4}, {"department_name": "Data and Analytics Department", "Headcount": 3810, "Pct_Female": 50.8, "Avg_Tenure": 6.4}, {"department_name": "Engineering Department", "Headcount": 3699, "Pct_Female": 50.2, "Avg_Tenure": 6.4}, {"department_name": "Finance Department", "Headcount": 3728, "Pct_Female": 49.0, "Avg_Tenure": 6.4}, {"department_name": "Human Resources Department", "Headcount": 3784, "Pct_Female": 49.6, "Avg_Tenure": 6.4}, {"department_name": "Marketing Department", "Headcount": 3718, "Pct_Female": 50.2, "Avg_Tenure": 6.4}, {"department_name": "Operations Department", "Headcount": 3717, "Pct_Female": 50.3, "Avg_Tenure": 6.4}, {"department_name": "Product Management Department", "Headcount": 3725, "Pct_Female": 48.9, "Avg_Tenure": 6.4}], "education": [{"Education Level": "Bachelor's Degree", "Headcount": 9996, "Avg_Salary": 8753.0, "Avg_Performance": 4.0}, {"Education Level": "Diploma", "Headcount": 5061, "Avg_Salary": 8789.0, "Avg_Performance": 4.0}, {"Education Level": "Doctoral Degree", "Headcount": 4371, "Avg_Salary": 8781.0, "Avg_Performance": 4.0}, {"Education Level": "Master's Degree", "Headcount": 10572, "Avg_Salary": 8759.0, "Avg_Performance": 4.0}], "cost_value": [{"department_name": "Product Management Department", "Avg_Salary": 8728.0, "Total_Comp_Spend": 38635183.0, "Total_Revenue": 12729727, "Total_Cost": 8704722, "Avg_Perf": 4.0, "Revenue_per_Cost": 1.46}, {"department_name": "Marketing Department", "Avg_Salary": 8789.0, "Total_Comp_Spend": 38775926.0, "Total_Revenue": 9483501, "Total_Cost": 6446907, "Avg_Perf": 4.0, "Revenue_per_Cost": 1.47}, {"department_name": "Engineering Department", "Avg_Salary": 8811.0, "Total_Comp_Spend": 38668826.0, "Total_Revenue": 15098641, "Total_Cost": 9906647, "Avg_Perf": 4.0, "Revenue_per_Cost": 1.52}, {"department_name": "Finance Department", "Avg_Salary": 8704.0, "Total_Comp_Spend": 38603346.0, "Total_Revenue": 20205857, "Total_Cost": 12872003, "Avg_Perf": 4.0, "Revenue_per_Cost": 1.57}, {"department_name": "Operations Department", "Avg_Salary": 8704.0, "Total_Comp_Spend": 38531409.0, "Total_Revenue": 15029555, "Total_Cost": 9464318, "Avg_Perf": 4.0, "Revenue_per_Cost": 1.59}, {"department_name": "Data and Analytics Department", "Avg_Salary": 8799.0, "Total_Comp_Spend": 39823180.0, "Total_Revenue": 5145085, "Total_Cost": 3168975, "Avg_Perf": 4.0, "Revenue_per_Cost": 1.62}, {"department_name": "Customer Support Department", "Avg_Salary": 8750.0, "Total_Comp_Spend": 39741330.0, "Total_Revenue": 8798465, "Total_Cost": 5184195, "Avg_Perf": 4.0, "Revenue_per_Cost": 1.7}, {"department_name": "Human Resources Department", "Avg_Salary": 8835.0, "Total_Comp_Spend": 39720422.0, "Total_Revenue": 17582526, "Total_Cost": 9763278, "Avg_Perf": 4.0, "Revenue_per_Cost": 1.8}], "health_risk": [{"department_name": "Operations Department", "Pct_Expired": 33.9, "Avg_Leave_Bal": 14.9, "Pct_Not_Eligible": 50.4}, {"department_name": "Customer Support Department", "Pct_Expired": 33.8, "Avg_Leave_Bal": 15.1, "Pct_Not_Eligible": 49.6}, {"department_name": "Product Management Department", "Pct_Expired": 33.3, "Avg_Leave_Bal": 15.0, "Pct_Not_Eligible": 48.6}, {"department_name": "Marketing Department", "Pct_Expired": 33.1, "Avg_Leave_Bal": 15.0, "Pct_Not_Eligible": 49.3}, {"department_name": "Engineering Department", "Pct_Expired": 32.8, "Avg_Leave_Bal": 15.1, "Pct_Not_Eligible": 48.8}, {"department_name": "Finance Department", "Pct_Expired": 32.6, "Avg_Leave_Bal": 15.2, "Pct_Not_Eligible": 50.6}, {"department_name": "Human Resources Department", "Pct_Expired": 32.6, "Avg_Leave_Bal": 14.8, "Pct_Not_Eligible": 48.5}, {"department_name": "Data and Analytics Department", "Pct_Expired": 32.5, "Avg_Leave_Bal": 15.0, "Pct_Not_Eligible": 51.2}], "status": [{"department_name": "Customer Support Department", "Active": 33.5, "Inactive": 32.4, "On Leave": 34.1}, {"department_name": "Data and Analytics Department", "Active": 33.4, "Inactive": 32.9, "On Leave": 33.6}, {"department_name": "Engineering Department", "Active": 35.2, "Inactive": 31.2, "On Leave": 33.6}, {"department_name": "Finance Department", "Active": 33.9, "Inactive": 32.0, "On Leave": 34.1}, {"department_name": "Human Resources Department", "Active": 34.2, "Inactive": 32.6, "On Leave": 33.2}, {"department_name": "Marketing Department", "Active": 33.1, "Inactive": 32.9, "On Leave": 34.0}, {"department_name": "Operations Department", "Active": 33.1, "Inactive": 35.1, "On Leave": 31.8}, {"department_name": "Product Management Department", "Active": 32.6, "Inactive": 33.8, "On Leave": 33.6}], "perf_trend": [{"Year": 2021, "Average_Performance_Score": 3.72}, {"Year": 2022, "Average_Performance_Score": 3.62}, {"Year": 2023, "Average_Performance_Score": 3.81}, {"Year": 2024, "Average_Performance_Score": 4.21}, {"Year": 2025, "Average_Performance_Score": 3.62}], "training_corr": {"Average_Performance_Score": 1.0, "Total_Revenue_Generated": 0.15, "Total_Cost": 0.08, "Training_Hours_Completed": 0.23}};
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#2b3a55';
+const palette = ['#38bdf8','#f472b6','#34d399','#fbbf24','#a78bfa','#fb923c','#f87171','#60a5fa'];
+
+new Chart(document.getElementById('headcountChart'), {
+  type: 'bar',
+  data: {
+    labels: DATA.composition.map(d => d.department_name.replace(' Department','')),
+    datasets: [{ label: 'Headcount', data: DATA.composition.map(d => d.Headcount), backgroundColor: palette }]
+  },
+  options: { plugins: { legend: { display:false } }, scales: { y: { beginAtZero:false } } }
+});
+
+new Chart(document.getElementById('costValueChart'), {
+  type: 'bar',
+  data: {
+    labels: DATA.cost_value.map(d => d.department_name.replace(' Department','')),
+    datasets: [{ label: 'Revenue per $ Cost', data: DATA.cost_value.map(d => d.Revenue_per_Cost), backgroundColor: palette }]
+  },
+  options: { indexAxis: 'y', plugins: { legend: { display:false } } }
+});
+
+new Chart(document.getElementById('eduChart'), {
+  type: 'bar',
+  data: {
+    labels: DATA.education.map(d => d['Education Level']),
+    datasets: [
+      { label: 'Avg Salary ($)', data: DATA.education.map(d => d.Avg_Salary), backgroundColor: '#38bdf8', yAxisID: 'y' },
+      { label: 'Avg Performance (x1000)', data: DATA.education.map(d => d.Avg_Performance*1000), backgroundColor: '#f472b6', yAxisID: 'y' }
+    ]
+  },
+  options: { plugins: { legend: { position:'bottom' } } }
+});
+
+new Chart(document.getElementById('healthChart'), {
+  type: 'bar',
+  data: {
+    labels: DATA.health_risk.map(d => d.department_name.replace(' Department','')),
+    datasets: [
+      { label: '% Insurance Expired', data: DATA.health_risk.map(d => d.Pct_Expired), backgroundColor: '#f87171' },
+      { label: '% Not Leave-Eligible', data: DATA.health_risk.map(d => d.Pct_Not_Eligible), backgroundColor: '#fbbf24' }
+    ]
+  },
+  options: { plugins: { legend: { position:'bottom' } } }
+});
+
+new Chart(document.getElementById('statusChart'), {
+  type: 'bar',
+  data: {
+    labels: DATA.status.map(d => d.department_name.replace(' Department','')),
+    datasets: [
+      { label: 'Active', data: DATA.status.map(d => d.Active), backgroundColor: '#34d399', stack:'s' },
+      { label: 'On Leave', data: DATA.status.map(d => d['On Leave']), backgroundColor: '#fbbf24', stack:'s' },
+      { label: 'Inactive', data: DATA.status.map(d => d.Inactive), backgroundColor: '#f87171', stack:'s' }
+    ]
+  },
+  options: { plugins: { legend: { position:'bottom' } }, scales: { x: { stacked:true }, y: { stacked:true } } }
+});
+
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
+  data: {
+    labels: DATA.perf_trend.map(d => d.Year),
+    datasets: [{ label: 'Avg Performance Score', data: DATA.perf_trend.map(d => d.Average_Performance_Score), borderColor: '#38bdf8', backgroundColor: '#38bdf822', fill:true, tension:.3 }]
+  },
+  options: { plugins: { legend: { display:false } } }
+});
+
+new Chart(document.getElementById('corrChart'), {
+  type: 'bar',
+  data: {
+    labels: Object.keys(DATA.training_corr),
+    datasets: [{ label: 'Correlation with Performance', data: Object.values(DATA.training_corr), backgroundColor: palette }]
+  },
+  options: { indexAxis: 'y', plugins: { legend: { display:false } }, scales: { x: { min:-1, max:1 } } }
+});
+</script>
+</body>
+</html>
