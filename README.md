@@ -14,7 +14,7 @@ recommendations.
 | `schema.sql` | Creates the database, 3 tables, and indexes. Run this first. |
 | `analysis_queries.sql` | One query block per objective — run after data is loaded. |
 | `/data/*.csv` | The 3 cleaned, analysis-ready tables (employee-level, employee-yearly, department-yearly). |
-| `dashboard.pbix` | Power BI dashboard — **add this yourself** (see note below). |
+| `dashboard.pbix` | Power BI dashboard — single page, 11 visuals (4 KPI cards, 1 department slicer, 6 charts covering all 5 objectives). Open directly in Power BI Desktop. |
 | `dashboard.html` | Standalone interactive dashboard — works in any browser, no install needed. |
 
 ## How to reproduce this in MySQL
@@ -51,15 +51,21 @@ department_performance_yearly (40 rows — department x year, 2021-2025)
 - ~33% of employees company-wide have expired insurance status — systemic, not department-specific.
 - Training hours completed correlate weakly with performance (r≈0.23) and revenue (r≈0.11).
 
-## About the .pbix file
+## About the dashboard
 
-This repo is missing `dashboard.pbix` on purpose — that file is a proprietary binary format
-that Power BI Desktop generates, and it can't be produced as a text/code file. To add it:
+`dashboard.pbix` is a single-page Power BI report with 11 visuals:
 
-1. Open Power BI Desktop.
-2. Import the 3 CSVs from `/data` (or connect directly to your MySQL database after running the steps above).
-3. Build the dashboard following the DAX measures in `dax_measures.md`.
-4. **File → Save As** → save as `dashboard.pbix` into this repo folder before committing.
+- **4 KPI cards** — total headcount, average tenure, best revenue-per-cost department, and insurance-expiry risk
+- **1 department slicer** — filters every visual on the page
+- **6 charts** covering all five objectives:
+  1. Headcount by department (clustered column)
+  2. Revenue-per-cost by department (bar chart, sorted ascending)
+  3. Education level vs. salary/performance (clustered bar)
+  4. Health & wellbeing risk by department (column chart)
+  5. Employee status mix by department (column chart)
+  6. Company-wide performance trend, 2021–2025 (line chart)
+
+To open it: install Power BI Desktop (free from Microsoft) if you don't already have it, then just double-click `dashboard.pbix`. All DAX measures used are documented in `dax_measures.md` if you want to inspect or rebuild any of them.
 
 ## Tools used
 Excel/Python (cleaning), MySQL (database, joins, querying), Power BI (visualization).
