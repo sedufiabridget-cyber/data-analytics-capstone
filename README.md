@@ -1,6 +1,6 @@
 # Workforce Intelligence & Organizational Performance Analysis
 ### Roblox Africa Operations — Ghana Hub
-
+![Workforce Intelligence Dashboard](dashboard_preview.png.png)
 Integrated workforce analytics project combining employee, department, education,
 finance, health, and performance data (2021–2025) into one analytical model, built
 to answer 5 core objectives: workforce composition, education-to-placement alignment,
